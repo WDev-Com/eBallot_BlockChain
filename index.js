@@ -52,7 +52,7 @@ const fetchPending = async () => {
 // Usage example with async/await
 (async () => {
   try {
-    const blockchainData = await fetchBlockChain();
+    let blockchainData = await fetchBlockChain();
     const pendingVoting = await fetchPending();
     const minners = await fetchMinner();
     // console.log("fetchBlockChain : ", blockchainData);
@@ -76,7 +76,7 @@ const fetchPending = async () => {
           console.log("New block added successfully: jsonData OK");
         })
         .catch((error) => {
-          console.log("Error adding new block:", error);
+          console.log("Index.js Line No 79 : Error adding new block:", error);
         });
     }
 
@@ -87,47 +87,50 @@ const fetchPending = async () => {
 
     // console.log("BlockChain Is Valid : ",evm.checkChainVaildity());
 
+    ///// For Adding Miner
     // evm.addMinner("BB33");
-
-    // evm.createVoting(vote("EL22", "AA11", "DD22"));
-    // evm.createVoting(vote("DD55", "BB11", "DD22"));
-    // evm.createVoting(vote("ZZ94", "AA11", "BB33"));
-    // evm.createVoting(vote("UQ56", "BB11", "BB33"));
-    // evm.createVoting(vote("HH33", "BB11", "DD22"));
-    // evm.createVoting(vote("GGSS", "BB11", "DD22"));
-
+    //~~~~~~~~~~~~~~~~ Creating voting
+    // evm.createVoting(vote("EL22", "AA11", "DD22")); //k
+    // evm.createVoting(vote("DD55", "BB11", "DD22")); //k
+    // evm.createVoting(vote("ZZ94", "AA11", "BB33")); //k
+    // evm.createVoting(vote("UQ56", "BB11", "BB33")); //k
+    // evm.createVoting(vote("HH33", "BB11", "DD22")); //k
+    // evm.createVoting(vote("BGSE", "BB11", "DD22")); //k
+    // evm.createVoting(vote("SSGG", "BB11", "DD22"));
+    // evm.createVoting(vote("FFSS", "BB11", "BB33"));
+    // evm.createVoting(vote("LLAA", "BB11", "BB33"));
+    // evm.createVoting(vote("BBDE", "BB11", "DD22"));
     // console.log("Line no 97 index evm.pendingVoting", evm.pendingVoting);
     // console.log("Minner Data : Line No  98 Index.js : ", evm.minners);
 
     //~~~~~~~~~~~~~~~~ Minning Should be done one completed after that mine other vote~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-    // evm.miningPendingVoting("DD22");
-    // evm.miningPendingVoting("DD22");
-    evm.miningPendingVoting("DD22");
+    //~~~~~~~~~~~~~~~~ You Need to call this function multiple times for mining all votes
     // evm.miningPendingVoting("DD22");
 
     // evm.miningPendingVoting("BB33");
-    // evm.miningPendingVoting("BB33");
-    // evm.miningPendingVoting("BB33");
 
-    evm.generateVotingCredit("DD22");
+    ///~~~~~~~~~~~~~~~~  Genrate Voting Should be done after minning is done ~~~~~~~~~~~~~~~~
 
-    evm.generateVotingCredit("BB33");
-    console.log(
-      "---------Section evm.pendingVoting Line no 228 START---------------"
-    );
-    console.log("Pending Voting For mining", evm.pendingVoting);
-    console.log(
-      "---------Section evm.pendingVoting Line no 232 ENDS---------------"
-    );
-    console.log(
-      "---------Section evm.blockchain Line no 234 START---------------"
-    );
+    // await evm.generateVotingCredit("DD22");
 
-    console.log("Index.js Line no 80 BlockChain", evm.blockchain);
+    // evm.generateVotingCredit("BB33");
 
-    console.log(
-      "---------Section evm.blockchain Line no 236 ENDS---------------"
-    );
+    // console.log(
+    //   "---------Section evm.pendingVoting Line no 228 START---------------"
+    // );
+    // console.log("Pending Voting For mining", evm.pendingVoting);
+    // console.log(
+    //   "---------Section evm.pendingVoting Line no 232 ENDS---------------"
+    // );
+    // console.log(
+    //   "---------Section evm.blockchain Line no 234 START---------------"
+    // );
+
+    // console.log("Index.js Line no 80 BlockChain", evm.blockchain);
+
+    // console.log(
+    //   "---------Section evm.blockchain Line no 236 ENDS---------------"
+    // );
 
     const countVote = (Data, candidateID) => {
       const res = Data.reduce((accum, ele) => {

@@ -40,7 +40,7 @@ class VotesData {
     this.signature = sig.toDER("hex");
   }
 
-  /////////////////////////////////////////////////////
+  //////// check the signature of the vote is valid and verify the public of user
   isValid() {
     if (this.fromAddress === null) return true;
 

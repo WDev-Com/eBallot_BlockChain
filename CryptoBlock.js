@@ -30,7 +30,7 @@ class CryptoBlock {
       this.hash = this.computeHash();
     }
   }
-  //////////////////////////// Promblem is here
+  //////////////////////////// check vote is valid
   hasValidVote() {
     let vote = new VotesData(
       this.VoterData.fromAddress,

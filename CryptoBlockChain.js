@@ -20,14 +20,6 @@ class CryptoBlockChain {
     return this.blockchain[this.blockchain.length - 1];
   }
 
-  // addnewBlock replace by miningPendingVoting
-  /*addnewBlock(newBlock) {
-    newBlock.previousHash = this.obtainLastBlock().hash;
-    newBlock.hash = newBlock.computeHash();
-    newBlock.proofOfWork(this.difficulty);
-    this.blockchain.push(newBlock);
-  }*/
-
   addMinner(minnerAddress) {
     //////////////// Posting The Block //////////////////
     let existingMiner = this.minners.find(
@@ -58,7 +50,10 @@ class CryptoBlockChain {
           console.log("New block added successfully: jsonData OK");
         })
         .catch((error) => {
-          console.log("Error adding new block:", error);
+          console.log(
+            "CBC Line No 53 : While Post Creating New Minner Error adding new block:",
+            error
+          );
         });
     } else {
       throw new Error(" Minner Already Exists ");
@@ -70,13 +65,19 @@ class CryptoBlockChain {
   miningPendingVoting(minnerAddress) {
     if (this.pendingVoting.length !== 0) {
       let minner = this.minners.find((ele) => ele.minnerID === minnerAddress);
+      let vote = this.pendingVoting.find(
+        (ele) => ele.authority === minnerAddress
+      );
       if (minner === undefined) {
         console.log("Unauthorized Access To Method");
-      } else if (minner.minnerID === minnerAddress) {
+        //////// Add Condition Here To Intercept the minners votes data is over
+      } else if (vote === undefined) {
+        throw Error("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
+        // console.log(
+        //   "!!! CBC Line No 81 : !!!!! Vote Belongs To Other Minners !!!!!!!!!!!"
+        // );
+      } else if (minner.minnerID === minnerAddress && vote !== undefined) {
         if (this.blockchain.length > 0) {
-          let vote = this.pendingVoting.find(
-            (ele) => ele.authority === minnerAddress
-          );
           // console.log("Dada", vote);
           fetch(`http://localhost:3000/pendingVoting/${vote.id}`, {
             method: "DELETE",
@@ -96,21 +97,48 @@ class CryptoBlockChain {
               console.log("Error deleting record:", error);
             });
           delete vote.id;
-          let idGenerator = Math.random() * this.blockchain.length + 1;
-          let block = new Block(
-            idGenerator,
-            Date.now().toString(),
-            vote,
-            this.obtainLastBlock().hash
-          );
+          // let idGenerator = Math.random() * this.blockchain.length + 1;
+          // let block = new Block(
+          //   idGenerator,
+          //   Date.now().toString(),
+          //   vote,
+          //   this.obtainLastBlock().hash
+          // );
           // Set the previousHash before calling proofOfWork
           // console.log(
           //   "Line no 50 this.obtainLastBlock().hash",
           //   this.obtainLastBlock().hash
           // );
-          block.previousHash = this.obtainLastBlock().hash;
-          block.proofOfWork(this.difficulty);
-          minner.minnerData.push(block);
+          // block.previousHash = this.obtainLastBlock().hash;
+          // block.proofOfWork(this.difficulty);
+          // let { minnerID, minnerData, credits, id } = minner;
+          minner.minnerData.push(vote);
+          //////////////////////// WORK IN PROGRESS !!!!!!!!!!!!!!!!!!!!!!!!!!!
+          // console.log("credits-------------->", minner);
+          if (minner.id) {
+            fetch(`http://localhost:3000/minners/${minner.id}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(minner),
+            })
+              .then((response) => response.text())
+              .then((data) => {
+                // console.log("Raw response from server:", data);
+                console.log("Raw response from server: data OK");
+                const jsonData = JSON.stringify(data);
+                // console.log("New block added successfully:", jsonData);
+                console.log("New block added successfully: OK", jsonData);
+              })
+              .catch((error) => {
+                console.log(
+                  "CBC Line No : 132 : While Patch Error  Adding Vote Data To Minner DataBase:",
+                  error
+                );
+              });
+          }
+          // minner.minnerData.push(block);
         }
       } else {
         console.log("CryptoBlockchain Line No 109 BlockChain is empty.");
@@ -121,7 +149,7 @@ class CryptoBlockChain {
     }
   }
 
-  /////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////  Create a new vote
   createVoting(voteData) {
     if (!voteData.voterID || !voteData.candidateID) {
       throw new Error("Vote must include voterID and to CandiateID");
@@ -159,7 +187,10 @@ class CryptoBlockChain {
           console.log("New block added successfully: jsonData OK ");
         })
         .catch((error) => {
-          console.log("Error adding new block:", error);
+          console.log(
+            "CBC Line No 184 : While Post Vote Or Creating New Vote Error adding new block:",
+            error
+          );
         });
       // this.pendingVoting.push(voteData);
       // console.log("Line No 94 CBC : voteData : ", voteData);
@@ -170,66 +201,92 @@ class CryptoBlockChain {
     }
   }
 
-  generateVotingCredit(MinnerID) {
+  /////////////// To generate the credits for the miners
+  async generateVotingCredit(MinnerID) {
     let minnerNow = this.minners.find((ele) => ele.minnerID === MinnerID);
-    if (minnerNow === undefined) {
-      console.log("CBC Line No : 177 : UnAuthorized Access To Method");
-    } else {
-      // console.log("---------Section 1 Line no 179---------------", minnerNow);
-      // let plainObjects = minnerNow.minnerData.map((minnerData) =>
-      //   Object.assign({}, minnerData)
-      // );
-      // console.log("---------Section 2 Line no 183---------------");
-      // console.log(plainObjects);
-      // console.log("---------Section 3 CBC Line no 185---------------");
 
-      // console.log(minnerNow.minnerData);
+    if (!minnerNow) {
+      console.log("CBC Line No : 177 : Unauthorized Access To Method");
+      return;
+    }
+    // console.log("minnerNow-------->", minnerNow);
+    if (minnerNow.minnerData.length !== minnerNow.credits) {
+      let votsData = Object.assign({}, minnerNow.minnerData[minnerNow.credits]);
 
-      // console.log("---------Section 4 Line no 189 START---------------");
-      for (let minData of minnerNow.minnerData) {
-        let votsData = Object.assign({}, minData.VoterData);
-        console.log("TEST ::::::::::::::: ", votsData.authority);
-        if (minnerNow.credits === minnerNow.minnerData.length) {
-          console("Work is over");
-        } else if (votsData.authority === MinnerID) {
-          minnerNow.credits += 1;
-          let { timestamp, VoterData, previousHash } = minData;
-          let block = new Block();
-          block.timestamp = timestamp;
-          block.VoterData = VoterData;
-          block.previousHash = this.obtainLastBlock().hash;
-          block.proofOfWork(this.difficulty);
+      if (votsData.authority === MinnerID) {
+        // Increment the credits
+        minnerNow.credits += 1;
 
-          // this.blockchain.push(block);
-          //////////////// Posting The Block //////////////////
-          fetch("http://localhost:3000/blockchain", {
+        let idGenerator = Math.random() * this.blockchain.length + 1;
+        let block = new Block(
+          idGenerator,
+          Date.now().toString(),
+          votsData,
+          this.obtainLastBlock().hash
+        );
+        // Set the previousHash before calling proofOfWork
+        block.previousHash = this.obtainLastBlock().hash;
+        block.proofOfWork(this.difficulty);
+
+        try {
+          let response = await fetch("http://localhost:3000/blockchain", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify(block),
-          })
-            .then((response) => response.text())
-            .then((data) => {
-              // console.log("Raw response from server:", data);
-              const jsonData = JSON.stringify(data);
-              // console.log("New block added successfully:", jsonData);
-              console.log("New block added successfully: jsonData OK");
-            })
-            .catch((error) => {
-              console.log("Error adding new block:", error);
-            });
+          });
 
-          //////////////// Posting The Block //////////////////
-        } else {
-          console.log("Line no 225 CBC : This minner has no authority");
+          if (response.status === 200) {
+            console.log("New block added successfully");
+          } else {
+            console.log(
+              "CBC Line No 245 : if response.status Error adding new block:",
+              await response.text()
+            );
+          }
+        } catch (error) {
+          console.log(
+            "CBC Line No : 251 : POST Block To BlockChain Error adding new block:",
+            error
+          );
         }
+      } else {
+        console.log("Line no 251 CBC: This minner has no authority");
       }
-      // console.log("---------Section 4 CBC Line no 140 ENDS---------------");
+    } else {
+      console.log(
+        `!!!!!!!!!!!!!! Work is over for minner ${minnerNow.minnerID} !!!!!!!!!!!!!!!!`
+      );
+    }
+
+    try {
+      //await
+      let minnerUpdateResponse = fetch(
+        `http://localhost:3000/minners/${minnerNow.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(minnerNow),
+        }
+      );
+
+      if (minnerUpdateResponse.status === 200) {
+        console.log("Minner credits updated successfully");
+      } else {
+        console.log(
+          "Error updating minner minnerUpdateResponse.status:",
+          minnerUpdateResponse
+        );
+      }
+    } catch (error) {
+      console.log("Error updating minner credits:", error);
     }
   }
 
-  ////////// Check For Valid Reletion Between Blocks
+  //// Check the Validation status of the BlockChain
   checkChainVaildity() {
     const realGenesis = JSON.stringify(this.startGenesisBlock());
     // console.log(realGenesis);
