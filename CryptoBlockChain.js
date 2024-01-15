@@ -291,7 +291,7 @@ class CryptoBlockChain {
     const realGenesis = JSON.stringify(this.startGenesisBlock());
     // console.log(realGenesis);
     if (realGenesis !== JSON.stringify(this.blockchain[0])) {
-      console.log("Checking Chain Validity A");
+      throw new Error("Checking Chain Validity : The Genesis Block Is Corrupt");
       return false;
     }
 
@@ -307,7 +307,9 @@ class CryptoBlockChain {
       // );
 
       if (currrBlock.previousHash !== prevBlock.hash) {
-        console.log("Checking Chain Validity 2");
+        throw new Error(
+          "Checking Chain Validity : Current Block Previous Hash & Previous Block Hash Is Different"
+        );
         return false;
       }
     }
@@ -326,11 +328,15 @@ class CryptoBlockChain {
       // console.log("currrBlock.computeHash() : ", currrBlock.computeHash());
       // console.log("CBC Line no 270 ---------------> currrBlock", currrBlock);
       if (!currrBlock.hasValidVote()) {
+        throw new Error("Checking Chain Validity : Not Valid Vote");
+        console.log(currrBlock);
         return false;
       }
 
       if (currrBlock.hash !== currrBlock.computeHash()) {
-        console.log("Checking Chain Validity 1");
+        throw new Error(
+          "Checking Chain Validity : Current Block Hash & Current Block Compute Hash Is Different"
+        );
         return false;
       }
     }

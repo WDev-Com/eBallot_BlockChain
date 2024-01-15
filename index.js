@@ -4,56 +4,19 @@ const VotesData = require("./VoteData");
 const EC = require("elliptic").ec;
 const ec = new EC("secp256k1");
 
-const vote = (voterID, CandiateID, Auth) => {
-  const mykey = ec.keyFromPrivate(voterID.concat("DADA"));
-  const myPublicKey = mykey.getPublic("hex");
-  let BallotVote = new VotesData(myPublicKey, voterID, CandiateID, 1, Auth);
-  BallotVote.signVote(mykey);
-  return BallotVote;
-};
+const {
+  vote,
+  countVote,
+  fetchBlockChain,
+  fetchPendingVotes,
+  fetchMinner,
+} = require("./Methods");
 
-///////////////////// Fetching BlockChain From Network //////////////////////
-const fetchBlockChain = async () => {
-  try {
-    const response = await fetch("http://localhost:3000/blockchain");
-    const data = await response.json();
-    // console.log("Blockchain data:", data); // Add this line
-    console.log("Blockchain data fetched successfully");
-    return data;
-  } catch (error) {
-    console.log("Error fetching blockchain:", error);
-    throw error;
-  }
-};
-
-const fetchMinner = async () => {
-  try {
-    const response = await fetch("http://localhost:3000/minners");
-    const data = await response.json();
-    // console.log("Blockchain data:", data); // Add this line
-    return data;
-  } catch (error) {
-    console.log("Error fetching blockchain:", error);
-    throw error;
-  }
-};
-
-const fetchPending = async () => {
-  try {
-    const response = await fetch("http://localhost:3000/pendingVoting");
-    const data = await response.json();
-    // console.log("Blockchain data:", data); // Add this line
-    return data;
-  } catch (error) {
-    console.log("Error fetching blockchain:", error);
-    throw error;
-  }
-};
 // Usage example with async/await
 (async () => {
   try {
     let blockchainData = await fetchBlockChain();
-    const pendingVoting = await fetchPending();
+    const pendingVoting = await fetchPendingVotes();
     const minners = await fetchMinner();
     // console.log("fetchBlockChain : ", blockchainData);
     const block = new Block(1, "01/01/2024", "Initail Block in the chain", "0");
@@ -132,21 +95,12 @@ const fetchPending = async () => {
     //   "---------Section evm.blockchain Line no 236 ENDS---------------"
     // );
 
-    const countVote = (Data, candidateID) => {
-      const res = Data.reduce((accum, ele) => {
-        let curr = Object.assign({}, ele.VoterData);
-        // console.log(curr);
-        if (curr.candidateID == candidateID) {
-          accum = accum + 1;
-        }
-        return accum;
-      }, 0);
-      return res;
-    };
-
     let plainBlockChain = evm.blockchain.map((data) => Object.assign({}, data));
 
-    console.log("BlockChain Is Valid : ", evm.checkChainVaildity());
+    console.log(
+      "Index.js Line No 100 : BlockChain Is Valid : ",
+      evm.checkChainVaildity()
+    );
     console.log(
       "Vote Count of Candiate AA11",
       countVote(plainBlockChain.slice(1), "AA11")
