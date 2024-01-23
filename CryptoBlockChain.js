@@ -47,7 +47,7 @@ class CryptoBlockChain {
           console.log("Raw response from server: data OK");
           const jsonData = JSON.stringify(data);
           // console.log("New block added successfully:", jsonData);
-          console.log("New block added successfully: jsonData OK");
+          console.log("New Minner added successfully: jsonData OK");
         })
         .catch((error) => {
           console.log(
@@ -62,90 +62,72 @@ class CryptoBlockChain {
     // this.minners.push({ minnerID: minnerAddress, minnerData: [], credits: 0 });
   }
 
-  miningPendingVoting(minnerAddress) {
-    if (this.pendingVoting.length !== 0) {
-      let minner = this.minners.find((ele) => ele.minnerID === minnerAddress);
-      let vote = this.pendingVoting.find(
-        (ele) => ele.authority === minnerAddress
-      );
-      if (minner === undefined) {
-        console.log("Unauthorized Access To Method");
-        //////// Add Condition Here To Intercept the minners votes data is over
-      } else if (vote === undefined) {
-        throw Error("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
-        // console.log(
-        //   "!!! CBC Line No 81 : !!!!! Vote Belongs To Other Minners !!!!!!!!!!!"
-        // );
-      } else if (minner.minnerID === minnerAddress && vote !== undefined) {
-        if (this.blockchain.length > 0) {
-          // console.log("Dada", vote);
-          fetch(`http://localhost:3000/pendingVoting/${vote.id}`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-            .then((response) => response.text())
-            .then((data) => {
-              // console.log("Raw response from server:", data);
-              console.log("Raw response from server: data OK ");
-              const jsonData = JSON.stringify(data);
-              // console.log("Record deleted successfully:", jsonData);
-              console.log("Record deleted successfully: jsonData OK ");
-            })
-            .catch((error) => {
-              console.log("Error deleting record:", error);
-            });
-          delete vote.id;
-          // let idGenerator = Math.random() * this.blockchain.length + 1;
-          // let block = new Block(
-          //   idGenerator,
-          //   Date.now().toString(),
-          //   vote,
-          //   this.obtainLastBlock().hash
-          // );
-          // Set the previousHash before calling proofOfWork
-          // console.log(
-          //   "Line no 50 this.obtainLastBlock().hash",
-          //   this.obtainLastBlock().hash
-          // );
-          // block.previousHash = this.obtainLastBlock().hash;
-          // block.proofOfWork(this.difficulty);
-          // let { minnerID, minnerData, credits, id } = minner;
-          minner.minnerData.push(vote);
-          //////////////////////// WORK IN PROGRESS !!!!!!!!!!!!!!!!!!!!!!!!!!!
-          // console.log("credits-------------->", minner);
-          if (minner.id) {
-            fetch(`http://localhost:3000/minners/${minner.id}`, {
-              method: "PATCH",
+  miningPendingVoting(minnerAddress, vote) {
+    try {
+      if (this.pendingVoting.length !== 0) {
+        let minner = this.minners.find((ele) => ele.minnerID === minnerAddress);
+        if (minner === undefined) {
+          console.log("Unauthorized Access To Method");
+          //////// Add Condition Here To Intercept the minners votes data is over
+        } else if (minner.minnerID === minnerAddress) {
+          if (this.blockchain.length > 0) {
+            // console.log("Dada", vote);
+            fetch(`http://localhost:3000/pendingVoting/${vote.id}`, {
+              method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(minner),
             })
               .then((response) => response.text())
               .then((data) => {
                 // console.log("Raw response from server:", data);
-                console.log("Raw response from server: data OK");
+                console.log("Raw response from server: data OK ");
                 const jsonData = JSON.stringify(data);
-                // console.log("New block added successfully:", jsonData);
-                console.log("New block added successfully: OK", jsonData);
+                // console.log("Record deleted successfully:", jsonData);
+                console.log("Record deleted successfully: jsonData OK ");
               })
               .catch((error) => {
-                console.log(
-                  "CBC Line No : 132 : While Patch Error  Adding Vote Data To Minner DataBase:",
-                  error
-                );
+                console.log("Error deleting record:", error);
               });
+            delete vote.id;
+
+            minner.minnerData.push(vote);
+            //////////////////////// WORK IN PROGRESS !!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // console.log("credits-------------->", minner);
+            if (minner.id) {
+              fetch(`http://localhost:3000/minners/${minner.id}`, {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(minner),
+              })
+                .then((response) => response.text())
+                .then((data) => {
+                  // console.log("Raw response from server:", data);
+                  console.log("Raw response from server: data OK");
+                  const jsonData = JSON.stringify(data);
+                  // console.log("New block added successfully:", jsonData);
+                  console.log("New block added successfully: OK", jsonData);
+                })
+                .catch((error) => {
+                  console.log(
+                    "CBC Line No : 132 : While Patch Error  Adding Vote Data To Minner DataBase:",
+                    error
+                  );
+                });
+            }
+            // minner.minnerData.push(block);
           }
-          // minner.minnerData.push(block);
+        } else {
+          console.log("CryptoBlockchain Line No 109 BlockChain is empty.");
         }
+        console.log("Line No : 111 CBC > Block Mined Successfully");
       } else {
-        console.log("CryptoBlockchain Line No 109 BlockChain is empty.");
+        console.log("CBC Line No : 135 > No pending votes");
       }
-      console.log("Line No : 111 CBC > Block Mined Successfully");
-    } else {
-      console.log("CBC Line No : 122 > No pending votes");
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -184,7 +166,7 @@ class CryptoBlockChain {
           // console.log("Raw response from server:", data);
           const jsonData = JSON.stringify(data);
           // console.log("New block added successfully:", jsonData);
-          console.log("New block added successfully: jsonData OK ");
+          console.log("New Vote added successfully: jsonData OK ");
         })
         .catch((error) => {
           console.log(
@@ -204,11 +186,6 @@ class CryptoBlockChain {
   /////////////// To generate the credits for the miners
   async generateVotingCredit(MinnerID) {
     let minnerNow = this.minners.find((ele) => ele.minnerID === MinnerID);
-
-    if (!minnerNow) {
-      console.log("CBC Line No : 177 : Unauthorized Access To Method");
-      return;
-    }
     // console.log("minnerNow-------->", minnerNow);
     if (minnerNow.minnerData.length !== minnerNow.credits) {
       let votsData = Object.assign({}, minnerNow.minnerData[minnerNow.credits]);
@@ -254,12 +231,7 @@ class CryptoBlockChain {
       } else {
         console.log("Line no 251 CBC: This minner has no authority");
       }
-    } else {
-      console.log(
-        `!!!!!!!!!!!!!! Work is over for minner ${minnerNow.minnerID} !!!!!!!!!!!!!!!!`
-      );
     }
-
     try {
       //await
       let minnerUpdateResponse = fetch(
@@ -291,7 +263,8 @@ class CryptoBlockChain {
     const realGenesis = JSON.stringify(this.startGenesisBlock());
     // console.log(realGenesis);
     if (realGenesis !== JSON.stringify(this.blockchain[0])) {
-      throw new Error("Checking Chain Validity : The Genesis Block Is Corrupt");
+      // throw new Error
+      console.log("Checking Chain Validity : The Genesis Block Is Corrupt");
       return false;
     }
 
@@ -307,7 +280,8 @@ class CryptoBlockChain {
       // );
 
       if (currrBlock.previousHash !== prevBlock.hash) {
-        throw new Error(
+        // throw new Error
+        console.log(
           "Checking Chain Validity : Current Block Previous Hash & Previous Block Hash Is Different"
         );
         return false;
@@ -328,13 +302,15 @@ class CryptoBlockChain {
       // console.log("currrBlock.computeHash() : ", currrBlock.computeHash());
       // console.log("CBC Line no 270 ---------------> currrBlock", currrBlock);
       if (!currrBlock.hasValidVote()) {
-        throw new Error("Checking Chain Validity : Not Valid Vote");
-        console.log(currrBlock);
+        // throw new Error
+        console.log("Checking Chain Validity : Not Valid Vote");
+        // console.log(currrBlock);
         return false;
       }
 
       if (currrBlock.hash !== currrBlock.computeHash()) {
-        throw new Error(
+        // throw new Error
+        console.log(
           "Checking Chain Validity : Current Block Hash & Current Block Compute Hash Is Different"
         );
         return false;
