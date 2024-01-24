@@ -133,53 +133,53 @@ class CryptoBlockChain {
 
   /////////////////////////////////////////////////////  Create a new vote
   createVoting(voteData) {
-    if (!voteData.voterID || !voteData.candidateID) {
-      throw new Error("Vote must include voterID and to CandiateID");
-    }
-    // Verify the transactiion
-    if (!voteData.isValid()) {
-      throw new Error("Cannot add invalid Vote to chain");
-    }
-
-    // Create a new function to check the vote is already in the chain
-    for (let vote of this.blockchain) {
-      if (vote.VoterData.voterID === voteData.voterID) {
-        throw new Error(
-          "!!!!!!!!!!!!!! Line No : 140 : Vote Is Already Voted #  Voter Is Malpracticing !!!!!!!!!!!!!!!!!"
-        );
+    try {
+      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$", voteData);
+      if (!voteData.voterID || !voteData.candidateID) {
+        throw new Error("Vote must include voterID and to CandiateID");
       }
-    }
-
-    let pendVoting = this.pendingVoting.find(
-      (element) => element.voterID === voteData.voterID
-    );
-    if (pendVoting === undefined) {
-      fetch("http://localhost:3000/pendingVoting", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(voteData),
-      })
-        .then((response) => response.text())
-        .then((data) => {
-          // console.log("Raw response from server:", data);
-          const jsonData = JSON.stringify(data);
-          // console.log("New block added successfully:", jsonData);
-          console.log("New Vote added successfully: jsonData OK ");
-        })
-        .catch((error) => {
-          console.log(
-            "CBC Line No 184 : While Post Vote Or Creating New Vote Error adding new block:",
-            error
+      // Verify the transactiion
+      if (!voteData.isValid()) {
+        throw new Error("Cannot add invalid Vote to chain");
+      }
+      let voteValid = true;
+      // Create a new function to check the vote is already in the chain
+      for (let vote of this.pendingVoting) {
+        console.log("$$$", vote);
+        if (vote.voterID === voteData.voterID) {
+          voteValid = false;
+          throw new Error(
+            "!!!!!!!!!!!!!! Line No : 140 : Vote Is Already Voted #  Voter Is Malpracticing !!!!!!!!!!!!!!!!!"
           );
-        });
-      // this.pendingVoting.push(voteData);
-      // console.log("Line No 94 CBC : voteData : ", voteData);
-    } else {
-      console.log(
-        "!!!!!!!!!!!!!! Line No : 169 : Voter Is Malpracticing !!!!!!!!!!!!!!!!!"
-      );
+        }
+      }
+      console.log("voteValid", voteValid);
+      if (voteValid) {
+        fetch("http://localhost:3000/pendingVoting", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(voteData),
+        })
+          .then((response) => response.text())
+          .then((data) => {
+            // console.log("Raw response from server:", data);
+            const jsonData = JSON.stringify(data);
+            // console.log("New block added successfully:", jsonData);
+            console.log("New Vote added successfully: jsonData OK ");
+          })
+          .catch((error) => {
+            console.log(
+              "CBC Line No 184 : While Post Vote Or Creating New Vote Error adding new block:",
+              error
+            );
+          });
+        // this.pendingVoting.push(voteData);
+        // console.log("Line No 94 CBC : voteData : ", voteData);
+      }
+    } catch (error) {
+      console.log("CBC Line No 183 : ", error);
     }
   }
 
