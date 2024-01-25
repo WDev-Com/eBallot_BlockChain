@@ -30,7 +30,7 @@ class CryptoBlockChain {
     //   existingMiner ? existingMiner.minnerID : "Miner not found"
     // );
     if (!existingMiner) {
-      fetch("http://localhost:3000/minners", {
+      fetch("http://localhost:8000/minners", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,67 +62,72 @@ class CryptoBlockChain {
     // this.minners.push({ minnerID: minnerAddress, minnerData: [], credits: 0 });
   }
 
-  miningPendingVoting(minnerAddress, vote) {
+  async miningPendingVoting(minnerAddress, vote) {
     try {
+      console.log("vote.voterID", vote.voterID);
       if (this.pendingVoting.length !== 0) {
         let minner = this.minners.find((ele) => ele.minnerID === minnerAddress);
+
         if (minner === undefined) {
           console.log("Unauthorized Access To Method");
-          //////// Add Condition Here To Intercept the minners votes data is over
+          // Add condition here to intercept when the minner's votes data is over
         } else if (minner.minnerID === minnerAddress) {
           if (this.blockchain.length > 0) {
-            // console.log("Dada", vote);
-            fetch(`http://localhost:3000/pendingVoting/${vote.id}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-              .then((response) => response.text())
-              .then((data) => {
-                // console.log("Raw response from server:", data);
-                console.log("Raw response from server: data OK ");
-                const jsonData = JSON.stringify(data);
-                // console.log("Record deleted successfully:", jsonData);
-                console.log("Record deleted successfully: jsonData OK ");
-              })
-              .catch((error) => {
-                console.log("Error deleting record:", error);
-              });
-            delete vote.id;
+            try {
+              // Use async/await for fetch instead of promise chaining
+              const response = await fetch(
+                `http://localhost:8000/pendingVoting/${vote.id}`,
+                {
+                  method: "DELETE",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
-            minner.minnerData.push(vote);
-            //////////////////////// WORK IN PROGRESS !!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // console.log("credits-------------->", minner);
-            if (minner.id) {
-              fetch(`http://localhost:3000/minners/${minner.id}`, {
-                method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(minner),
-              })
-                .then((response) => response.text())
-                .then((data) => {
-                  // console.log("Raw response from server:", data);
-                  console.log("Raw response from server: data OK");
-                  const jsonData = JSON.stringify(data);
-                  // console.log("New block added successfully:", jsonData);
-                  console.log("New block added successfully: OK", jsonData);
-                })
-                .catch((error) => {
-                  console.log(
-                    "CBC Line No : 132 : While Patch Error  Adding Vote Data To Minner DataBase:",
-                    error
+              if (!response.ok) {
+                throw new Error(
+                  `Failed to delete record. Status: ${response.status}`
+                );
+              }
+
+              console.log("Record deleted successfully");
+
+              // Delete vote.id property
+              delete vote.id;
+
+              // Add vote to minner's data
+              minner.minnerData.push(vote);
+
+              if (minner.id) {
+                // Update minner data on the server
+                const updateResponse = await fetch(
+                  `http://localhost:8000/minners/${minner.id}`,
+                  {
+                    method: "PATCH",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(minner),
+                  }
+                );
+
+                if (!updateResponse.ok) {
+                  throw new Error(
+                    `Failed to update minner data. Status: ${updateResponse.status}`
                   );
-                });
+                }
+
+                console.log("Minner data updated successfully");
+              }
+            } catch (error) {
+              console.error("Error processing votes:", error);
             }
-            // minner.minnerData.push(block);
+          } else {
+            console.log("CryptoBlockchain Line No 109 BlockChain is empty.");
           }
-        } else {
-          console.log("CryptoBlockchain Line No 109 BlockChain is empty.");
+          console.log("Line No : 111 CBC > Block Mined Successfully");
         }
-        console.log("Line No : 111 CBC > Block Mined Successfully");
       } else {
         console.log("CBC Line No : 135 > No pending votes");
       }
@@ -132,7 +137,7 @@ class CryptoBlockChain {
   }
 
   /////////////////////////////////////////////////////  Create a new vote
-  createVoting(voteData) {
+  async createVoting(voteData) {
     try {
       console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$", voteData);
       if (!voteData.voterID || !voteData.candidateID) {
@@ -155,12 +160,21 @@ class CryptoBlockChain {
       }
       console.log("voteValid", voteValid);
       if (voteValid) {
-        fetch("http://localhost:3000/pendingVoting", {
+        let { fromAddress, voterID, candidateID, voted, authority, signature } =
+          voteData;
+        await fetch("http://localhost:8000/pendingVoting", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(voteData),
+          body: JSON.stringify({
+            fromAddress,
+            voterID,
+            candidateID,
+            voted,
+            authority,
+            signature,
+          }),
         })
           .then((response) => response.text())
           .then((data) => {
@@ -206,7 +220,7 @@ class CryptoBlockChain {
         block.proofOfWork(this.difficulty);
 
         try {
-          let response = await fetch("http://localhost:3000/blockchain", {
+          let response = await fetch("http://localhost:8000/blockchain", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -235,7 +249,7 @@ class CryptoBlockChain {
     try {
       //await
       let minnerUpdateResponse = fetch(
-        `http://localhost:3000/minners/${minnerNow.id}`,
+        `http://localhost:8000/minners/${minnerNow.id}`,
         {
           method: "PATCH",
           headers: {

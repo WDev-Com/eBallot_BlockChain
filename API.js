@@ -46,7 +46,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
     const block = new Block(1, "01/01/2024", "Initail Block in the chain", "0");
     let evm = new BlockChain(blockchainData, pendingVoting, minners);
     if (evm.blockchain[0] === undefined || null) {
-      fetch("http://localhost:3000/blockchain", {
+      fetch("http://localhost:8000/blockchain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
     // 2. For Creating Minner
     app.post("/createMinner", async function (req, res) {
       let { minnerID } = req.body;
-      await evm.addMinner(minnerID);
+      evm.addMinner(minnerID);
       res.status(200).send(JSON.stringify(req.body));
       // Fetch updated minner data after creating minner
       console.log("Fetching updated pendingVoting data...");
@@ -102,17 +102,21 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
 
     // 3. For Minning Pending Voting Using Minnner ID
     app.post("/miningPendingVoting/:ID", async function (req, res) {
+      minners = await fetchMinner();
+      pendingVoting = await fetchPendingVotes();
+      evm = new BlockChain(blockchainData, pendingVoting, minners);
       let { ID } = req.params;
       console.log(ID);
-
       let minnersData = evm.minners;
       // console.log(minnersData);
       let findMinners = minnersData.find((minner) => minner.minnerID === ID);
       let vote = evm.pendingVoting.find(
         (ele) => ele.authority === findMinners.minnerID
       );
+      console.log("vote : ", vote);
+
       // console.log("votevotevotevotevote", vote);
-      if (findMinners) {
+      if (findMinners && vote) {
         if (evm.pendingVoting.length != 0 && vote != undefined) {
           evm.miningPendingVoting(ID, vote);
           console.log("API.js Line No 85 Successfully Minned : " + ID);
@@ -120,7 +124,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
           // Fetch updated minner data after mined pending votes
           console.log("Fetching updated minners && blockchainData  data...");
           minners = await fetchMinner();
-          blockchainData = await fetchBlockChain();
+          pendingVoting = await fetchPendingVotes();
           evm = new BlockChain(blockchainData, pendingVoting, minners);
         } else if (evm.pendingVoting.length == 0) {
           console.log("No Pending Voting Remain");
@@ -131,6 +135,11 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
             .status(401)
             .send("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
         }
+      } else if (vote == undefined) {
+        console.log("Minner Has No Pending Votes of his bussiness To Mine");
+        res
+          .status(401)
+          .send("Minner Has No Pending Votes of his bussiness To Mine");
       } else {
         console.log("Unauthorized Access");
         res.status(401).send("Unauthorized Access");
@@ -139,11 +148,18 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
 
     // 4. For Genrate Voting Credit Using Minner ID
     app.post("/generateVotingCredit/:ID", async function (req, res) {
+      minners = await fetchMinner();
+      pendingVoting = await fetchPendingVotes();
+      evm = new BlockChain(blockchainData, pendingVoting, minners);
       let { ID } = req.params;
       let minnersData = evm.minners;
       // console.log(minnersData);
       let findMinners = minnersData.find((minner) => minner.minnerID === ID);
-      // console.log(findMinners);
+      console.log(
+        "findMinners.minnerData.length",
+        findMinners.minnerData.length
+      );
+      console.log("findMinners.credits", findMinners.credits);
       if (findMinners.minnerData.length === findMinners.credits) {
         console.log(
           `!!!!!!!!!!!!!! Work is over for minner ${findMinners.minnerID} !!!!!!!!!!!!!!!!`
@@ -168,6 +184,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
         // Fetch updated minner data after creating genrate vote credit
         console.log("Fetching updated minners && blockchainData  data...");
         minners = await fetchMinner();
+        pendingVoting = await fetchPendingVotes();
         blockchainData = await fetchBlockChain();
         evm = new BlockChain(blockchainData, pendingVoting, minners);
       }

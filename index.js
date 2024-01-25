@@ -24,7 +24,7 @@ const {
     // You can also perform other operations with the cryptoBlockChain instance
     const evm = new BlockChain(blockchainData, pendingVoting, minners);
     if (evm.blockchain[0] === undefined || null) {
-      fetch("http://localhost:3000/blockchain", {
+      fetch("http://localhost:8000/blockchain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
