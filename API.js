@@ -58,7 +58,9 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
           // console.log("Raw response from server:", data);
           const jsonData = JSON.stringify(data);
           // console.log("New block added successfully:", jsonData);
-          console.log("New Genesis Block added successfully: jsonData OK");
+          console.log(
+            "API.JS Line No 61 : New Genesis Block added successfully: jsonData OK"
+          );
         })
         .catch((error) => {
           console.log("API .js Line No 64 : Error adding new block:", error);
@@ -122,7 +124,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
           if (evm.pendingVoting.length != 0 && vote != undefined) {
             evm.miningPendingVoting(ID, vote);
             console.log("API.js Line No 85 Successfully Minned : " + ID);
-            res.status(201).send("Successfully Minned : " + ID); // Use .send() correctly
+            res.status(201).json({ success: "Successfully Minned" }); // Use .send() correctly
             // Fetch updated minner data after mined pending votes
             console.log("Fetching updated minners && blockchainData  data...");
             minners = await fetchMinner();
@@ -169,23 +171,21 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
         console.log(
           `!!!!!!!!!!!!!! Work is over for minner ${findMinners.minnerID} !!!!!!!!!!!!!!!!`
         );
-        res
-          .status(401)
-          .send(
-            `!!!!!!!!!!!!!! Work is over for minner ${findMinners.minnerID} !!!!!!!!!!!!!!!!`
-          );
+        res.status(401).json({
+          error: `!!!!!!!!!!!!!! Work is over for minner ${findMinners.minnerID} !!!!!!!!!!!!!!!!`,
+        });
       }
       if (!findMinners) {
         console.log("No Minners found of ID :" + ID);
-        res
-          .status(401)
-          .send("Unauthorized Access ! " + "No Minners found of ID :" + ID);
+        res.status(401).json({
+          error: `Unauthorized Access ! " + "No Minners found of ID : ${ID}`,
+        });
       } else if (
         findMinners &&
         findMinners.minnerData.length !== findMinners.credits
       ) {
         await evm.generateVotingCredit(ID);
-        res.status(201).send("Successfully Minned : " + ID); // Use .send() correctly
+        res.status(201).json({ success: "Successfully Minned" }); // Use .send() correctly
         // Fetch updated minner data after creating genrate vote credit
         console.log("Fetching updated minners && blockchainData  data...");
         minners = await fetchMinner();
@@ -214,6 +214,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
     });
 
     // 6. For Counting The Votes Of Candidates Using CandidateID
+    // console.log(evm.blockchain);
     let plainBlockChain = evm.blockchain.map((data) => Object.assign({}, data));
     app.get("/CountVote/:CandidateID", async (req, res) => {
       let { CandidateID } = req.params;
@@ -236,7 +237,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
       let minnerArrayLen = minner.minnerData.length;
       if (minner) {
         res.status(200).json({
-          pendingVoting: minnerArrayLen - minner.credits,
+          pendingVoting: minnerArrayLen,
           credits: minner.credits,
         });
         return;

@@ -139,7 +139,6 @@ class CryptoBlockChain {
   /////////////////////////////////////////////////////  Create a new vote
   async createVoting(voteData) {
     try {
-      console.log(voteData);
       console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$", voteData);
       if (!voteData.voterID || !voteData.candidateID) {
         throw new Error("Vote must include voterID and to CandiateID");
