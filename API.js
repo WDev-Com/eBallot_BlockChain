@@ -46,7 +46,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
     const block = new Block(1, "01/01/2024", "Initail Block in the chain", "0");
     let evm = new BlockChain(blockchainData, pendingVoting, minners);
     if (evm.blockchain[0] === undefined || null) {
-      fetch("http://localhost:8000/blockchain", {
+      fetch("http://localhost:9090/blockchain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
           console.log("New Genesis Block added successfully: jsonData OK");
         })
         .catch((error) => {
-          console.log("Index.js Line No 79 : Error adding new block:", error);
+          console.log("API .js Line No 64 : Error adding new block:", error);
         });
     }
     // 1. For Creating Vote
@@ -102,47 +102,52 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
 
     // 3. For Minning Pending Voting Using Minnner ID
     app.post("/miningPendingVoting/:ID", async function (req, res) {
-      minners = await fetchMinner();
-      pendingVoting = await fetchPendingVotes();
-      evm = new BlockChain(blockchainData, pendingVoting, minners);
-      let { ID } = req.params;
-      console.log(ID);
-      let minnersData = evm.minners;
-      // console.log(minnersData);
-      let findMinners = minnersData.find((minner) => minner.minnerID === ID);
-      let vote = evm.pendingVoting.find(
-        (ele) => ele.authority === findMinners.minnerID
-      );
-      console.log("vote : ", vote);
+      try {
+        minners = await fetchMinner();
+        pendingVoting = await fetchPendingVotes();
+        evm = new BlockChain(blockchainData, pendingVoting, minners);
+        let { ID } = req.params;
+        console.log(ID);
+        let minnersData = evm.minners;
+        // console.log(minnersData);
 
-      // console.log("votevotevotevotevote", vote);
-      if (findMinners && vote) {
-        if (evm.pendingVoting.length != 0 && vote != undefined) {
-          evm.miningPendingVoting(ID, vote);
-          console.log("API.js Line No 85 Successfully Minned : " + ID);
-          res.status(201).send("Successfully Minned : " + ID); // Use .send() correctly
-          // Fetch updated minner data after mined pending votes
-          console.log("Fetching updated minners && blockchainData  data...");
-          minners = await fetchMinner();
-          pendingVoting = await fetchPendingVotes();
-          evm = new BlockChain(blockchainData, pendingVoting, minners);
-        } else if (evm.pendingVoting.length == 0) {
-          console.log("No Pending Voting Remain");
-          res.status(401).send("No Pending Voting Remain");
-        } else {
-          console.log("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
+        let findMinners = minnersData.find((minner) => minner.minnerID === ID);
+        let vote = evm.pendingVoting.find(
+          (ele) => ele.authority === findMinners.minnerID || null
+        );
+        console.log("vote : ", vote);
+
+        // console.log("votevotevotevotevote", vote);
+        if (findMinners && vote) {
+          if (evm.pendingVoting.length != 0 && vote != undefined) {
+            evm.miningPendingVoting(ID, vote);
+            console.log("API.js Line No 85 Successfully Minned : " + ID);
+            res.status(201).send("Successfully Minned : " + ID); // Use .send() correctly
+            // Fetch updated minner data after mined pending votes
+            console.log("Fetching updated minners && blockchainData  data...");
+            minners = await fetchMinner();
+            pendingVoting = await fetchPendingVotes();
+            evm = new BlockChain(blockchainData, pendingVoting, minners);
+          } else if (evm.pendingVoting.length == 0) {
+            console.log("No Pending Voting Remain");
+            res.status(401).send("No Pending Voting Remain");
+          } else {
+            console.log("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
+            res
+              .status(401)
+              .send("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
+          }
+        } else if (vote == undefined && !findMinners) {
+          console.log("Unauthorized Access");
+          res.status(401).send("Unauthorized Access");
+        } else if (findMinners) {
+          console.log("Minner Has No Pending Votes of his bussiness To Mine");
           res
             .status(401)
-            .send("!!!!!!!! Vote Belongs To Other Minners !!!!!!!!!!!");
+            .send("Minner Has No Pending Votes of his bussiness To Mine");
         }
-      } else if (vote == undefined) {
-        console.log("Minner Has No Pending Votes of his bussiness To Mine");
-        res
-          .status(401)
-          .send("Minner Has No Pending Votes of his bussiness To Mine");
-      } else {
-        console.log("Unauthorized Access");
-        res.status(401).send("Unauthorized Access");
+      } catch (e) {
+        console.log(e);
       }
     });
 
@@ -223,6 +228,27 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
         res.send("No Candidate Found Of This ID");
       }
     });
+
+    // 6. Fetch Miner Details
+    app.post("/fetchMinner/:ID", async function (req, res) {
+      let { ID } = req.params;
+      let minner = await fetchMinnerFromArray(ID, minners); // Pass minners here
+      let minnerArrayLen = minner.minnerData.length;
+      if (minner) {
+        res.status(200).json({
+          pendingVoting: minnerArrayLen - minner.credits,
+          credits: minner.credits,
+        });
+        return;
+      } else {
+        res.status(404).json({ error: "Miner not found" });
+      }
+    });
+
+    async function fetchMinnerFromArray(minnerID, minners) {
+      let miner = minners.find((miner) => miner.minnerID === minnerID);
+      return miner;
+    }
   } catch (error) {
     console.log("Error:", error);
   }
@@ -230,9 +256,12 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
 
 app.get("/", async function (req, res) {
   let blockChain = await fetchBlockChain();
-  res.json(blockChain);
+  console.log(blockChain);
+  res.status(200).json(blockChain);
 });
-
+/*
+json-server --watch db.json --port 9090
+*/
 app.listen(5000, (err) => {
   if (err) {
     console.log(err);

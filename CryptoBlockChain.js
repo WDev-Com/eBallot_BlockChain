@@ -30,7 +30,7 @@ class CryptoBlockChain {
     //   existingMiner ? existingMiner.minnerID : "Miner not found"
     // );
     if (!existingMiner) {
-      fetch("http://localhost:8000/minners", {
+      fetch("http://localhost:9090/minners", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +76,7 @@ class CryptoBlockChain {
             try {
               // Use async/await for fetch instead of promise chaining
               const response = await fetch(
-                `http://localhost:8000/pendingVoting/${vote.id}`,
+                `http://localhost:9090/pendingVoting/${vote.id}`,
                 {
                   method: "DELETE",
                   headers: {
@@ -102,7 +102,7 @@ class CryptoBlockChain {
               if (minner.id) {
                 // Update minner data on the server
                 const updateResponse = await fetch(
-                  `http://localhost:8000/minners/${minner.id}`,
+                  `http://localhost:9090/minners/${minner.id}`,
                   {
                     method: "PATCH",
                     headers: {
@@ -139,6 +139,7 @@ class CryptoBlockChain {
   /////////////////////////////////////////////////////  Create a new vote
   async createVoting(voteData) {
     try {
+      console.log(voteData);
       console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$", voteData);
       if (!voteData.voterID || !voteData.candidateID) {
         throw new Error("Vote must include voterID and to CandiateID");
@@ -162,7 +163,7 @@ class CryptoBlockChain {
       if (voteValid) {
         let { fromAddress, voterID, candidateID, voted, authority, signature } =
           voteData;
-        await fetch("http://localhost:8000/pendingVoting", {
+        await fetch("http://localhost:9090/pendingVoting", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -220,7 +221,7 @@ class CryptoBlockChain {
         block.proofOfWork(this.difficulty);
 
         try {
-          let response = await fetch("http://localhost:8000/blockchain", {
+          let response = await fetch("http://localhost:9090/blockchain", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -249,7 +250,7 @@ class CryptoBlockChain {
     try {
       //await
       let minnerUpdateResponse = fetch(
-        `http://localhost:8000/minners/${minnerNow.id}`,
+        `http://localhost:9090/minners/${minnerNow.id}`,
         {
           method: "PATCH",
           headers: {
