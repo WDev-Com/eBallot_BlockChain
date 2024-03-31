@@ -90,7 +90,7 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
           .send("!!!!!!!!!!!!!! Voter Is Malpracticing !!!!!!!!!!!!!!!!!");
       }
     });
-
+    //http://localhost:5000/createMinner
     // 2. For Creating Minner
     app.post("/createMinner", async function (req, res) {
       let { minnerID } = req.body;
@@ -220,7 +220,9 @@ Cautions : Afer the every api call the changes in the db.json , Is not directly
       let { CandidateID } = req.params;
       console.log("candidateID", CandidateID);
       let votes = countVote(plainBlockChain.slice(1), CandidateID);
+      console.log("votes", votes);
       if (votes) {
+        console.log("votes", votes);
         res.status(200).json({
           msg: `The Total Votes Of Candidate ID : ${CandidateID} `,
           count: Number(votes),
