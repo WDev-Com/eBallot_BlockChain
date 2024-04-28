@@ -24,45 +24,6 @@ const vote = (voterID, CandiateID, Auth) => {
   return BallotVote;
 };
 
-///////////////////// Fetching BlockChain From Network START'S //////////////////////
-/*const fetchBlockChain = async () => {
-  try {
-    const response = await fetch("http://localhost:9090/blockchain");
-    const data = await response.json();
-    // console.log("Blockchain data:", data); // Add this line
-    console.log("Blockchain data fetched successfully");
-    return data;
-  } catch (error) {
-    console.log("Error fetching blockchain:", error);
-    throw error;
-  }
-};
-
-const fetchMinner = async () => {
-  try {
-    const response = await fetch("http://localhost:9090/minners");
-    const data = await response.json();
-    // console.log("Blockchain data:", data); // Add this line
-    return data;
-  } catch (error) {
-    console.log("Error fetching blockchain:", error);
-    throw error;
-  }
-};
-
-const fetchPendingVotes = async () => {
-  try {
-    const response = await fetch("http://localhost:9090/pendingVoting");
-    const data = await response.json();
-    // console.log("Blockchain data:", data); // Add this line
-    return data;
-  } catch (error) {
-    console.log("Error fetching blockchain:", error);
-    throw error;
-  }
-};
-*/
-
 const fetchWithRetry = async (url, maxRetries = 3, retryDelay = 1000) => {
   for (let retry = 0; retry < maxRetries; retry++) {
     try {
@@ -101,3 +62,42 @@ module.exports = {
   fetchPendingVotes,
   fetchMinner,
 };
+
+///////////////////// Fetching BlockChain From Network START'S //////////////////////
+/*const fetchBlockChain = async () => {
+  try {
+    const response = await fetch("http://localhost:9090/blockchain");
+    const data = await response.json();
+    // console.log("Blockchain data:", data); // Add this line
+    console.log("Blockchain data fetched successfully");
+    return data;
+  } catch (error) {
+    console.log("Error fetching blockchain:", error);
+    throw error;
+  }
+};
+
+const fetchMinner = async () => {
+  try {
+    const response = await fetch("http://localhost:9090/minners");
+    const data = await response.json();
+    // console.log("Blockchain data:", data); // Add this line
+    return data;
+  } catch (error) {
+    console.log("Error fetching blockchain:", error);
+    throw error;
+  }
+};
+
+const fetchPendingVotes = async () => {
+  try {
+    const response = await fetch("http://localhost:9090/pendingVoting");
+    const data = await response.json();
+    // console.log("Blockchain data:", data); // Add this line
+    return data;
+  } catch (error) {
+    console.log("Error fetching blockchain:", error);
+    throw error;
+  }
+};
+*/
